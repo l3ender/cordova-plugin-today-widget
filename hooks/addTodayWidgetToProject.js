@@ -166,10 +166,27 @@ module.exports = function (context) {
         }
       ];
 
-      fs.readdirSync(widgetFolder).forEach(file => {
-        if (!/^\..*/.test(file)) {
-          // Ignore junk files like .DS_Store
-          var fileExtension = path.extname(file);
+      // https://stackoverflow.com/a/16684530/1880761
+      var walk = function(dir) {
+        var results = [];
+        var list = fs.readdirSync(dir);
+        list.forEach(function(file) {
+          file = path.join(dir, file);
+          var stat = fs.statSync(file);
+          if (stat && stat.isDirectory()) {
+            /* Recurse into a subdirectory */
+            results = results.concat(walk(file));
+          } else {
+            /* Is a file */
+            results.push(file);
+          }
+        });
+        return results;
+      };
+
+      walk(widgetFolder).forEach(file => {
+        var fileExtension = path.extname(file);
+        if (fileExtension) { // Ignore junk files like .DS_Store
           switch (fileExtension) {
             // Swift and Objective-C source files which need to be compiled
             case '.swift':
@@ -189,14 +206,14 @@ module.exports = function (context) {
             case '.entitlements':
             case '.xcconfig':
               if (fileExtension === '.plist') {
-                replacePlaceholdersInPlist(path.join(widgetFolder, file), placeHolderValues);
+                replacePlaceholdersInPlist(file, placeHolderValues);
               }
               if (fileExtension === '.xcconfig') {
                 addXcconfig = true;
                 xcconfigFileName = file;
               }
               if (fileExtension === '.entitlements') {
-                replacePlaceholdersInPlist(path.join(widgetFolder, file), placeHolderValues);
+                replacePlaceholdersInPlist(file, placeHolderValues);
                 addEntitlementsFile = true;
                 entitlementsFileName = file;
               }
