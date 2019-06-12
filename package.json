@@ -37,7 +37,7 @@
   },
   "lint-staged": {
     "*.js": [
-      "prettier --parser javascript --single-quote --print-width 80 --tab-width 2 --trailing-comma es5 --list-different --write",
+      "prettier --parser babel --single-quote --print-width 80 --tab-width 2 --trailing-comma es5 --list-different --write",
       "git add"
     ]
   }

@@ -31,9 +31,11 @@ function log(logString, type) {
   console.log(prefix + logString + postfix);
 }
 
-function getPreferenceValue (config, name) {
-  var value = config.match(new RegExp('name="' + name + '" value="(.*?)"', "i"));
-  if(value && value[1]) {
+function getPreferenceValue(config, name) {
+  var value = config.match(
+    new RegExp('name="' + name + '" value="(.*?)"', 'i')
+  );
+  if (value && value[1]) {
     return value[1];
   } else {
     return null;
@@ -48,7 +50,7 @@ log(
 
 // http://stackoverflow.com/a/26038979/5930772
 var copyFileSync = function(source, target) {
-  var targetFile = target;
+  let targetFile = target;
 
   // If target is a directory a new file with the same name will be created
   if (fs.existsSync(target)) {
@@ -60,10 +62,10 @@ var copyFileSync = function(source, target) {
   fs.writeFileSync(targetFile, fs.readFileSync(source));
 };
 var copyFolderRecursiveSync = function(source, target) {
-  var files = [];
+  let files = [];
 
   // Check if folder needs to be created or integrated
-  var targetFolder = path.join(target, path.basename(source));
+  let targetFolder = path.join(target, path.basename(source));
   if (!fs.existsSync(targetFolder)) {
     fs.mkdirSync(targetFolder);
   }
@@ -72,7 +74,7 @@ var copyFolderRecursiveSync = function(source, target) {
   if (fs.lstatSync(source).isDirectory()) {
     files = fs.readdirSync(source);
     files.forEach(function(file) {
-      var curSource = path.join(source, file);
+      let curSource = path.join(source, file);
       if (fs.lstatSync(curSource).isDirectory()) {
         copyFolderRecursiveSync(curSource, targetFolder);
       } else {
@@ -83,10 +85,10 @@ var copyFolderRecursiveSync = function(source, target) {
 };
 
 function getCordovaParameter(variableName, contents) {
-  var variable;
-  if(process.argv.join("|").indexOf(variableName + "=") > -1) {
-    var re = new RegExp(variableName + '=(.*?)(\||$))', 'g');
-    variable = process.argv.join("|").match(re)[1];
+  let variable;
+  if (process.argv.join('|').indexOf(variableName + '=') > -1) {
+    var re = new RegExp(variableName + '=(.*?)(||$))', 'g');
+    variable = process.argv.join('|').match(re)[1];
   } else {
     variable = getPreferenceValue(contents, variableName);
   }
@@ -124,36 +126,54 @@ module.exports = function(context) {
     }
 
     // Get the widget name and location from the parameters or the config file
-    var WIDGET_NAME = getCordovaParameter("WIDGET_NAME", contents);
-    var WIDGET_PATH = getCordovaParameter("WIDGET_PATH", contents);
+    var WIDGET_NAME = getCordovaParameter('WIDGET_NAME', contents);
+    var WIDGET_PATH = getCordovaParameter('WIDGET_PATH', contents);
     var widgetName = WIDGET_NAME || projectName + ' Widget';
 
     if (WIDGET_PATH) {
-        srcFolder = path.join(
-          context.opts.projectRoot,
-          WIDGET_PATH,
-          widgetName + '/'
-        );
+      srcFolder = path.join(
+        context.opts.projectRoot,
+        WIDGET_PATH,
+        widgetName + '/'
+      );
     } else {
-        srcFolder = path.join(
-          context.opts.projectRoot,
-          'www',
-          widgetName + '/'
-        );
+      srcFolder = path.join(context.opts.projectRoot, 'www', widgetName + '/');
     }
     if (!fs.existsSync(srcFolder)) {
       log(
-        'Missing widget folder in ' + srcFolder + '. Should have the same name as your widget: ' + widgetName,
+        'Missing widget folder in ' +
+          srcFolder +
+          '. Should have the same name as your widget: ' +
+          widgetName,
         'error'
       );
     }
 
+    let targetFolder = path.join(context.opts.projectRoot, 'platforms', 'ios');
     // Copy widget folder
-    copyFolderRecursiveSync(
-      srcFolder,
-      path.join(context.opts.projectRoot, 'platforms', 'ios')
+    copyFolderRecursiveSync(srcFolder, targetFolder);
+    log('Successfully copied ' + srcFolder + ' to ' + targetFolder, 'info');
+
+    targetFolder = path.join(targetFolder, widgetName);
+
+    var CUSTOM_FRAMEWORKS = getCordovaParameter('CUSTOM_FRAMEWORKS', contents);
+    if (CUSTOM_FRAMEWORKS) {
+      let customFrameworks = CUSTOM_FRAMEWORKS.split(',');
+      customFrameworks.forEach(framework => {
+        let srcFramework = path.join(context.opts.projectRoot, framework);
+        copyFolderRecursiveSync(srcFramework, targetFolder);
+        log(
+          'Successfully copied ' + srcFramework + ' to ' + targetFolder,
+          'info'
+        );
+      });
+    }
+
+    log(
+      'Successfully copied set up widget folder at ' + targetFolder,
+      'success'
     );
-    log('Successfully copied Widget folder!', 'success');
+
     console.log('\x1b[0m'); // reset
 
     deferral.resolve();
