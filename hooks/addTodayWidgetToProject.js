@@ -462,8 +462,9 @@ module.exports = function(context) {
               }
               if (plistFilePath) {
                 // update plist location in case it is in a subdirectory (info plist requires actual relative path)
-                buildSettingsObj['INFOPLIST_FILE'] = plistFilePath;
+                buildSettingsObj['INFOPLIST_FILE'] = '"' + plistFilePath + '"';
               }
+              buildSettingsObj['PRODUCT_BUNDLE_IDENTIFIER'] = bundleId + '.' + widgetBundleId;
             }
           }
         }
