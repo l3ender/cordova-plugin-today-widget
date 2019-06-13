@@ -42,12 +42,6 @@ function getPreferenceValue(config, name) {
   }
 }
 
-console.log('\x1b[40m');
-log(
-  'Running copyExtensionFolderToIosProject hook, copying widget folder ...',
-  'start'
-);
-
 // http://stackoverflow.com/a/26038979/5930772
 var copyFileSync = function(source, target) {
   let targetFile = target;
@@ -98,6 +92,19 @@ function getCordovaParameter(variableName, contents) {
 module.exports = function(context) {
   var Q = context.requireCordovaModule('q');
   var deferral = new Q.defer();
+
+  if (
+    process.env.INCLUDE_APP_EXTENSIONS &&
+    process.env.INCLUDE_APP_EXTENSIONS == 'false'
+  ) {
+    return;
+  }
+
+  console.log('\x1b[40m');
+  log(
+    'Running copyExtensionFolderToIosProject hook, copying widget folder ...',
+    'start'
+  );
 
   var contents = fs.readFileSync(
     path.join(context.opts.projectRoot, 'config.xml'),

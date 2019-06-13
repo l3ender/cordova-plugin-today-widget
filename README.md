@@ -61,6 +61,14 @@ Especially for automated builds, parametrization is an important part. The follo
 
 These parameters are available in available in any `.plist` or `.entitlements` files.
 
+### 4. Options
+
+The following environment variables are used at runtime:
+
+| Variable | Example | Description |
+|-|-|-|
+|INCLUDE_APP_EXTENSIONS| false | If false, pugin steps will be skipped and no extensions will be bundled into the app. Defaults to `true`. |
+
 #### Examples for usage:
 To keep the app and widget in sync use the following settings
 

@@ -64,16 +64,23 @@ function getCordovaParameter(variableName, contents) {
   return variable;
 }
 
-console.log('\x1b[40m');
-log(
-  'Running addTargetToXcodeProject hook, patching xcode project 🦄 ',
-  'start'
-);
-
 module.exports = function(context) {
   var xcode = context.requireCordovaModule('xcode');
   var Q = context.requireCordovaModule('q');
   var deferral = new Q.defer();
+
+  if (
+    process.env.INCLUDE_APP_EXTENSIONS &&
+    process.env.INCLUDE_APP_EXTENSIONS == 'false'
+  ) {
+    return;
+  }
+
+  console.log('\x1b[40m');
+  log(
+    'Running addTargetToXcodeProject hook, patching xcode project 🦄 ',
+    'start'
+  );
 
   if (context.opts.cordova.platforms.indexOf('ios') < 0) {
     log('You have to add the ios platform before adding this plugin!', 'error');
@@ -464,7 +471,6 @@ module.exports = function(context) {
                 // update plist location in case it is in a subdirectory (info plist requires actual relative path)
                 buildSettingsObj['INFOPLIST_FILE'] = '"' + plistFilePath + '"';
               }
-              buildSettingsObj['PRODUCT_BUNDLE_IDENTIFIER'] = bundleId + '.' + widgetBundleId;
             }
           }
         }
